@@ -9,15 +9,11 @@
 <body>
   <div class="container">
     <div class="loader"></div>
-    <h1 id="status">Buscando destino...</h1>
-    <p id="message">Por favor espera</p>
     <div class="error" id="error"></div>
   </div>
 
   <script>
     async function redirect() {
-      const statusEl = document.getElementById('status');
-      const messageEl = document.getElementById('message');
       const errorEl = document.getElementById('error');
       const shortPath = window.location.pathname;
       
@@ -27,8 +23,6 @@
       }
 
       try {
-        statusEl.textContent = 'Leyendo configuración...';
-        
         // Read URL from url.txt
         const urlResponse = await fetch('/url.txt');
         if (!urlResponse.ok) {
@@ -39,8 +33,6 @@
         if (!sheetsUrl) {
           throw new Error('El archivo url.txt está vacío.');
         }
-
-        statusEl.textContent = 'Consultando base de datos...';
         
         const response = await fetch(sheetsUrl);
         if (!response.ok) {
@@ -58,11 +50,13 @@
           const normalizedUrl = url.startsWith('/') ? url : '/' + url;
           
           if (normalizedUrl === shortPath) {
-            statusEl.textContent = '¡Enlace encontrado!';
-            messageEl.textContent = `Redirigiendo a ${destination}...`;
-            setTimeout(() => {
-              window.location.href = destination;
-            }, 500);
+            // Add http:// or https:// if not present
+            let finalDestination = destination;
+            if (!destination.startsWith('http://') && !destination.startsWith('https://')) {
+              finalDestination = 'https://' + destination;
+            }
+            
+            window.location.href = finalDestination;
             return;
           }
         }
@@ -70,8 +64,6 @@
         throw new Error(`No se encontró destino para: ${shortPath}`);
         
       } catch (error) {
-        statusEl.textContent = 'Error';
-        messageEl.textContent = '';
         errorEl.innerHTML = `
           <strong>❌ ${error.message}</strong>
           <br><br>
